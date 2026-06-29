@@ -1,0 +1,19 @@
+# Inline Diff ignore — same syntax as .gitignore. Edit freely.
+# Dependency, virtual-env, and build-cache folders are always excluded automatically.
+# This file covers build outputs and secrets — remove a line to start tracking that path.
+
+# Build output
+dist/
+build/
+out/
+bin/
+obj/
+coverage/
+
+# Secrets — Inline Diff does NOT honor .gitignore, so guard credentials explicitly.
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key

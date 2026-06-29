@@ -1,0 +1,244 @@
+{
+  "name": "inlinediff",
+  "displayName": "Inline Diff",
+  "description": "Control workspace file changes against an accepted baseline before they become Git history.",
+  "version": "0.1.1",
+  "publisher": "freeslur",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freeslur/inlinediff"
+  },
+  "bugs": {
+    "url": "https://github.com/freeslur/inlinediff/issues"
+  },
+  "homepage": "https://github.com/freeslur/inlinediff#readme",
+  "keywords": [
+    "inline",
+    "diff",
+    "review",
+    "accept",
+    "reject"
+  ],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "media/icon.png",
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "inlinediff",
+          "title": "Inline Diff",
+          "icon": "media/inlinediff.svg"
+        }
+      ]
+    },
+    "views": {
+      "inlinediff": [
+        {
+          "id": "inlinediff.changedFiles",
+          "name": "Changed Files"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "inlinediff.refresh",
+        "category": "Inline Diff",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "inlinediff.openDiff",
+        "category": "Inline Diff",
+        "title": "Open Diff"
+      },
+      {
+        "command": "inlinediff.initialize",
+        "category": "Inline Diff",
+        "title": "Initialize Project",
+        "icon": "$(add)",
+        "enablement": "inlinediff.canInitialize"
+      },
+      {
+        "command": "inlinediff.acceptFile",
+        "category": "Inline Diff",
+        "title": "Accept File",
+        "icon": "$(check)"
+      },
+      {
+        "command": "inlinediff.rejectFile",
+        "category": "Inline Diff",
+        "title": "Reject File",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "inlinediff.acceptHunk",
+        "category": "Inline Diff",
+        "title": "Accept Inline Change"
+      },
+      {
+        "command": "inlinediff.rejectHunk",
+        "category": "Inline Diff",
+        "title": "Reject Inline Change"
+      },
+      {
+        "command": "inlinediff.toggleKeepHunk",
+        "category": "Inline Diff",
+        "title": "Toggle Keep Inline Change"
+      },
+      {
+        "command": "inlinediff.acceptUnkeptHunks",
+        "category": "Inline Diff",
+        "title": "Accept Inline Changes Not Kept For Review",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "inlinediff.acceptAll",
+        "category": "Inline Diff",
+        "title": "Accept All",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "inlinediff.rejectAll",
+        "category": "Inline Diff",
+        "title": "Reject All",
+        "icon": "$(close-all)"
+      },
+      {
+        "command": "inlinediff.restoreDiffSettings",
+        "category": "Inline Diff",
+        "title": "Restore Diff Settings"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "workbench.action.compareEditor.previousChange",
+          "group": "navigation@1",
+          "when": "resourceScheme == inlinediff-current"
+        },
+        {
+          "command": "workbench.action.compareEditor.nextChange",
+          "group": "navigation@2",
+          "when": "resourceScheme == inlinediff-current"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "inlinediff.refresh",
+          "group": "navigation",
+          "when": "view == inlinediff.changedFiles"
+        },
+        {
+          "command": "inlinediff.initialize",
+          "group": "navigation",
+          "when": "view == inlinediff.changedFiles && inlinediff.canInitialize"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "inlinediff.initialize",
+          "when": "inlinediff.canInitialize"
+        },
+        {
+          "command": "inlinediff.openDiff",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.acceptFile",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.rejectFile",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.acceptHunk",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.rejectHunk",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.toggleKeepHunk",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.acceptUnkeptHunks",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.acceptAll",
+          "when": "false"
+        },
+        {
+          "command": "inlinediff.rejectAll",
+          "when": "false"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "inlinediff.acceptAll",
+          "group": "inline@1",
+          "when": "view == inlinediff.changedFiles && viewItem == inlinediff.project"
+        },
+        {
+          "command": "inlinediff.rejectAll",
+          "group": "inline@2",
+          "when": "view == inlinediff.changedFiles && viewItem == inlinediff.project"
+        },
+        {
+          "command": "inlinediff.acceptUnkeptHunks",
+          "group": "inline@3",
+          "when": "view == inlinediff.changedFiles && viewItem == inlinediff.project"
+        },
+        {
+          "command": "inlinediff.acceptFile",
+          "group": "inline@1",
+          "when": "view == inlinediff.changedFiles && viewItem =~ /inlinediff\\.(added|modified|deleted|binary-modified)/"
+        },
+        {
+          "command": "inlinediff.rejectFile",
+          "group": "inline@2",
+          "when": "view == inlinediff.changedFiles && viewItem =~ /inlinediff\\.(added|modified|deleted|binary-modified)/"
+        },
+        {
+          "command": "inlinediff.acceptUnkeptHunks",
+          "group": "inline@3",
+          "when": "view == inlinediff.changedFiles && viewItem =~ /inlinediff\\.(added|modified|deleted)/"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "check": "bun run typecheck && bun run lint && bun run test && bun run build",
+    "check-package": "bun run build && bunx vsce ls --tree",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome check .",
+    "package": "bun run scripts/package.ts",
+    "release:local": "bun run check && bun run package && bunx vsce ls --tree",
+    "release:marketplace:dry-run": "bun run release:local",
+    "test": "bun test --timeout 15000",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@types/vscode": "1.80.0",
+    "@vscode/vsce": "^3.9.2",
+    "bun-types": "^1.3.14",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "chardet": "^2.1.1",
+    "iconv-lite": "^0.7.2"
+  }
+}
