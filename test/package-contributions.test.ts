@@ -238,7 +238,7 @@ describe("extension release packaging", () => {
       displayName: "Inline Diff",
       license: "MIT OR Apache-2.0",
       publisher: "freeslur",
-      version: "0.1.1",
+      version: "0.1.2",
     });
     expect(extensionPackage.devDependencies).toHaveProperty("@vscode/vsce");
     expect(extensionPackage.scripts).toMatchObject({

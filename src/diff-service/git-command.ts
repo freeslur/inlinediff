@@ -114,6 +114,28 @@ export function runGitRepository(
   });
 }
 
+// Superseded baseline blobs (the previous content of a path, after the next Accept moves the
+// index on) are unreachable the moment they're superseded, and nothing here ever reclaims them
+// on its own: plumbing commands never trigger Git's auto gc, and a full `git gc` would repack
+// the whole repository even with nothing to clean. `git prune` does exactly what is needed and
+// nothing else — it deletes unreachable loose objects and keeps everything the index or a ref
+// references (both are reachability roots for its underlying `fsck --unreachable`).
+//
+// Deleting objects must never overlap another internal Git write sequence, so the caller holds
+// `withProjectGitLock` (this Extension Host) and the project operation lock (other windows).
+// Runs at project activation, where nobody waits.
+export async function collectGarbage(rootPath: string): Promise<void> {
+  try {
+    // A first cleanup after a long accumulation can outlive the default command timeout; nothing
+    // waits on this at activation, so give it a generous budget.
+    await runGitRepository(gitRepositoryPath(rootPath), rootPath, ["prune", "--expire=now"], {
+      timeoutMilliseconds: 60_000,
+    });
+  } catch {
+    // Best-effort housekeeping: never surface a failure. The next activation tries again.
+  }
+}
+
 export function runGitExecutable(
   args: readonly string[],
   options: GitOptions = {},
@@ -253,6 +275,9 @@ export function createGitEnvironment(source: NodeJS.ProcessEnv): NodeJS.ProcessE
   // stat cache. That write races with a concurrent read of the same index and fails on Windows
   // ("index file open failed: Permission denied"). Explicit writes (update-index) are unaffected.
   environment.GIT_OPTIONAL_LOCKS = "0";
+  // Force plumbing output (e.g. `count-objects`) into a stable, unlocalized format. Code that
+  // parses Git's stdout must not depend on the caller's OS locale.
+  environment.LC_ALL = "C";
   return environment;
 }
 

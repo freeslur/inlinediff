@@ -2,7 +2,7 @@
   "name": "inlinediff",
   "displayName": "Inline Diff",
   "description": "Control workspace file changes against an accepted baseline before they become Git history.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "freeslur",
   "license": "MIT OR Apache-2.0",
   "repository": {

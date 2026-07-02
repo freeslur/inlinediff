@@ -87,8 +87,8 @@ Prefer to build from source? Build and install the VSIX locally:
 
 ```powershell
 pwsh ./scripts/build.ps1 -Task Install
-pwsh ./scripts/build.ps1 -Task Package   # → dist/inlinediff-0.1.1.vsix
-code --install-extension dist/inlinediff-0.1.1.vsix
+pwsh ./scripts/build.ps1 -Task Package   # → dist/inlinediff-0.1.2.vsix
+code --install-extension dist/inlinediff-0.1.2.vsix
 ```
 
 Then open a workspace, open the **Inline Diff** view in the Activity Bar, and click
@@ -171,7 +171,7 @@ those outside changes can be overwritten while the reject is applied.
 
 ## Status
 
-Inline Diff is at `0.1.1` — an early release. The core review loop — scan, open,
+Inline Diff is at `0.1.2` — an early release. The core review loop — scan, open,
 accept, reject, and keep-for-review — is stable and covered by tests. The items under
 [Roadmap](#roadmap) are still ahead. Bug reports and feedback are welcome.
 

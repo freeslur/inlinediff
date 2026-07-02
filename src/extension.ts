@@ -11,6 +11,7 @@ import {
 import { acceptFile, rejectFile } from "./diff-service/file-actions.ts";
 import type { FileContentRevision } from "./diff-service/file-content-revision.ts";
 import { FileStabilityTracker } from "./diff-service/file-stability-tracker.ts";
+import { collectGarbage, withProjectGitLock } from "./diff-service/git-command.ts";
 import { acceptHunk, rejectHunk } from "./diff-service/hunk-actions.ts";
 import { acceptUnkeptHunks, type HunkActionSummary } from "./diff-service/hunk-bulk-actions.ts";
 import { readFileHunks } from "./diff-service/hunk-engine.ts";
@@ -21,6 +22,7 @@ import {
   initializeProject,
 } from "./diff-service/project-initializer.ts";
 import { ProjectOperationCoordinator } from "./diff-service/project-operation-coordinator.ts";
+import { tryAcquireProjectOperationLock } from "./diff-service/project-operation-lock.ts";
 import { ProjectOperationRunner } from "./diff-service/project-operation-runner.ts";
 import { type PendingHunk, ProjectOperationState } from "./diff-service/project-operation-state.ts";
 import { normalizeRelativePath } from "./diff-service/project-path.ts";
@@ -572,6 +574,8 @@ export function activate(context: vscode.ExtensionContext): void {
       ignoredUntrustedStoreKeys,
       stores,
     );
+    // Last on purpose: the tree is already populated, so nobody is waiting on this.
+    await collectStartupGarbage(context.globalState, stores);
   });
 }
 
@@ -588,6 +592,32 @@ async function pruneIgnoredBaselines(
       await untrackIgnoredFiles(root);
     } catch (error) {
       void vscode.window.showErrorMessage(`Inline Diff: ${toErrorMessage(error)}`);
+    }
+  }
+}
+
+// Once per session, reclaim superseded baseline blobs from each trusted internal repository.
+// Garbage collection deletes unreferenced objects, so it must never overlap another window's
+// write sequence: when the project operation lock is unavailable, skip silently — the next
+// activation tries again. Failures never surface; this is housekeeping, not a user action.
+async function collectStartupGarbage(
+  storage: TrustedStoreStorage,
+  stores: WorkspaceStores,
+): Promise<void> {
+  const roots = await filterTrustedProjectRoots(stores.projectRoots, storage);
+  for (const root of roots) {
+    try {
+      const lease = await tryAcquireProjectOperationLock(root);
+      if (lease === undefined) {
+        continue;
+      }
+      try {
+        await withProjectGitLock(root, () => collectGarbage(root));
+      } finally {
+        await lease.release();
+      }
+    } catch {
+      // Best-effort: never block or fail activation for housekeeping.
     }
   }
 }

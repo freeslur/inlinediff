@@ -2,7 +2,9 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { devNull, platform, tmpdir } from "node:os";
 import { join } from "node:path";
+import { readBaselineFile, writeBaselineFile } from "../../src/diff-service/baseline-store.ts";
 import {
+  collectGarbage,
   createGitCommandOptions,
   createGitEnvironment,
   defaultGitMaxStderrBytes,
@@ -10,7 +12,9 @@ import {
   defaultReadOnlyGitTimeoutMilliseconds,
   defaultWriteGitTimeoutMilliseconds,
   runGitExecutable,
+  runProjectGit,
 } from "../../src/diff-service/git-command.ts";
+import { initializeProject } from "../../src/diff-service/project-initializer.ts";
 
 const temporaryRoots: string[] = [];
 
@@ -116,6 +120,40 @@ describe("runGitExecutable", () => {
     expect("timeoutMilliseconds" in error ? error.timeoutMilliseconds : undefined).toBe(250);
   });
 });
+
+describe("collectGarbage", () => {
+  test("deletes superseded baseline blobs and keeps the current baseline readable", async () => {
+    const root = await createTemporaryRoot();
+    await initializeProject(root);
+    // Each write's old blob becomes unreachable the moment the index moves to the new one.
+    for (let index = 0; index < 5; index += 1) {
+      await writeBaselineFile(root, "grows.ts", Buffer.from(`content-${index}`));
+    }
+    const beforeCount = await countLooseObjects(root);
+
+    await collectGarbage(root);
+
+    // The four superseded revisions are gone; everything the index references (including the
+    // latest revision) must survive — the index is a reachability root for prune.
+    expect(await countLooseObjects(root)).toBe(beforeCount - 4);
+    expect(await readBaselineFile(root, "grows.ts")).toEqual(Buffer.from("content-4"));
+  });
+
+  test("resolves without throwing when the internal repository is missing", async () => {
+    const root = await createTemporaryRoot();
+
+    await collectGarbage(root);
+  });
+});
+
+async function countLooseObjects(root: string): Promise<number> {
+  const { stdout } = await runProjectGit(root, ["count-objects", "-v"]);
+  const match = /^count: (\d+)/m.exec(stdout.toString("utf8"));
+  if (match?.[1] === undefined) {
+    throw new Error(`Unexpected "git count-objects -v" output: ${stdout.toString("utf8")}`);
+  }
+  return Number(match[1]);
+}
 
 async function createTemporaryRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "inlinediff-git-command-test-"));

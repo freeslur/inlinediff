@@ -86,8 +86,8 @@ VS Code 마켓플레이스에서 **Inline Diff**를 설치하세요. Extensions 
 
 ```powershell
 pwsh ./scripts/build.ps1 -Task Install
-pwsh ./scripts/build.ps1 -Task Package   # → dist/inlinediff-0.1.1.vsix
-code --install-extension dist/inlinediff-0.1.1.vsix
+pwsh ./scripts/build.ps1 -Task Package   # → dist/inlinediff-0.1.2.vsix
+code --install-extension dist/inlinediff-0.1.2.vsix
 ```
 
 이후 워크스페이스를 열고 Activity Bar의 **Inline Diff** 뷰를 연 뒤, 뷰 제목 표시줄의
@@ -164,7 +164,7 @@ Inline Diff가 맡아서, 어느 것도 당신의 히스토리에 새어 들지 
 
 ## 상태
 
-Inline Diff는 `0.1.1` — 초기 릴리스입니다. 핵심 검토 흐름(스캔, 열기, 수락, 거절,
+Inline Diff는 `0.1.2` — 초기 릴리스입니다. 핵심 검토 흐름(스캔, 열기, 수락, 거절,
 보류)은 안정적이며 테스트로 검증되어 있습니다. [로드맵](#로드맵) 항목은 아직 남아
 있습니다. 버그 제보와 피드백을 환영합니다.
 
